@@ -1,0 +1,44 @@
+# Build output
+bin/
+obj/
+
+# Uploaded files - never commit user data
+**/Uploads/
+
+# .NET user secrets and local config overrides
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+**/secrets.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Test results
+TestResults/
+coverage/
+*.trx
+*.coveragexml
+
+# Publish output
+publish/
