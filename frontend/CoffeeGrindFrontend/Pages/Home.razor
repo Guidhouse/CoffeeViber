@@ -1,0 +1,132 @@
+﻿@page "/"
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+@inject HttpClient Http
+
+<PageTitle>Home</PageTitle>
+
+<h1>Coffee Grind Upload</h1>
+
+<p>Select one image and upload it to the backend API.</p>
+
+<div class="mb-3">
+	<InputFile OnChange="OnFileSelected" accept=".jpg,.jpeg,.png,.gif,.bmp" />
+</div>
+
+@if (!string.IsNullOrWhiteSpace(selectedFileName))
+{
+	<p><strong>Selected:</strong> @selectedFileName (@selectedFileSize bytes)</p>
+}
+
+<button class="btn btn-primary" @onclick="UploadFileAsync" disabled="@isUploading">@(isUploading ? "Uploading..." : "Upload")</button>
+
+@if (!string.IsNullOrWhiteSpace(statusMessage))
+{
+	<div class="alert @(uploadSucceeded ? "alert-success" : "alert-danger") mt-3" role="alert">
+		@statusMessage
+	</div>
+}
+
+@if (uploadResult is not null)
+{
+	<div class="card mt-3">
+		<div class="card-body">
+			<h5 class="card-title">Upload Result</h5>
+			<ul class="mb-0">
+				<li><strong>Stored Name:</strong> @uploadResult.FileName</li>
+				<li><strong>Original Name:</strong> @uploadResult.OriginalName</li>
+				<li><strong>Size:</strong> @uploadResult.FileSize bytes</li>
+				<li><strong>Type:</strong> @uploadResult.FileType</li>
+			</ul>
+		</div>
+	</div>
+}
+
+@code {
+	private const long MaxFileSize = 10 * 1024 * 1024;
+	private IBrowserFile? selectedFile;
+	private string? selectedFileName;
+	private long selectedFileSize;
+	private bool isUploading;
+	private bool uploadSucceeded;
+	private string? statusMessage;
+	private UploadResult? uploadResult;
+
+	private void OnFileSelected(InputFileChangeEventArgs args)
+	{
+		selectedFile = args.File;
+		selectedFileName = selectedFile.Name;
+		selectedFileSize = selectedFile.Size;
+		uploadResult = null;
+		statusMessage = null;
+		uploadSucceeded = false;
+	}
+
+	private async Task UploadFileAsync()
+	{
+		if (selectedFile is null)
+		{
+			uploadSucceeded = false;
+			statusMessage = "Please select a file first.";
+			return;
+		}
+
+		if (selectedFile.Size > MaxFileSize)
+		{
+			uploadSucceeded = false;
+			statusMessage = "File size exceeds the maximum limit of 10MB.";
+			return;
+		}
+
+		try
+		{
+			isUploading = true;
+			statusMessage = null;
+
+			await using var stream = selectedFile.OpenReadStream(MaxFileSize);
+			using var streamContent = new StreamContent(stream);
+			streamContent.Headers.ContentType = new MediaTypeHeaderValue(selectedFile.ContentType);
+
+			using var formData = new MultipartFormDataContent();
+			formData.Add(streamContent, "file", selectedFile.Name);
+
+			using var response = await Http.PostAsync("api/grind/upload", formData);
+			var payload = await response.Content.ReadAsStringAsync();
+
+			if (response.IsSuccessStatusCode)
+			{
+				uploadResult = JsonSerializer.Deserialize<UploadResult>(payload, new JsonSerializerOptions
+				{
+					PropertyNameCaseInsensitive = true
+				});
+
+				uploadSucceeded = true;
+				statusMessage = uploadResult?.Message ?? "File uploaded successfully!";
+			}
+			else
+			{
+				uploadSucceeded = false;
+				statusMessage = payload;
+			}
+		}
+		catch (Exception ex)
+		{
+			uploadSucceeded = false;
+			statusMessage = $"Upload failed: {ex.Message}";
+		}
+		finally
+		{
+			isUploading = false;
+		}
+	}
+
+	private sealed class UploadResult
+	{
+		public string? Message { get; set; }
+		public string? FileName { get; set; }
+		public string? OriginalName { get; set; }
+		public long FileSize { get; set; }
+		public string? FileType { get; set; }
+	}
+}

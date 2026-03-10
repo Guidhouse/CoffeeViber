@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Mqt5azpjaG8=",
+  "success": true,
+  "projectFilePath": "/home/runge/projects/vibeCopilot/backend/CoffeeGrindBackend/CoffeeGrindBackend.csproj",
+  "expectedPackageFiles": [
+    "/home/runge/.nuget/packages/microsoft.aspnetcore.openapi/10.0.3/microsoft.aspnetcore.openapi.10.0.3.nupkg.sha512",
+    "/home/runge/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

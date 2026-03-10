@@ -1,0 +1,6 @@
+@CoffeeGrindBackend_HostAddress = http://localhost:5067
+
+GET {{CoffeeGrindBackend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
