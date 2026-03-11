@@ -39,6 +39,7 @@ public static class ServiceExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         });
 
+        builder.Services.AddAntiforgery();
         builder.Services.AddSingleton<ImageValidationService>();
 
         return builder;
@@ -53,6 +54,7 @@ public static class ServiceExtensions
 
         app.UseHttpsRedirection();
         app.UseCors("Frontend");
+        app.UseAntiforgery();
         app.UseRateLimiter();
 
         return app;
